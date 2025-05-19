@@ -1,15 +1,12 @@
 import sys
 import time
 import random
-# Función para eliminar redundancias en cualquier lista de cadenas
 def eliminar_redundancias(strs):
     unique = []
     for s in sorted(strs, key=len, reverse=True):
         if not any(s in t for t in unique):
             unique.append(s)
     return unique
-
-# 1) Algoritmo greedy por merge de pares con mayor solapamiento
 def greedy_merge(strs):
     strs = eliminar_redundancias(strs)
     def overlap(a, b):
@@ -32,8 +29,6 @@ def greedy_merge(strs):
         new_list.append(merged)
         strs = eliminar_redundancias(new_list)
     return strs[0]
-
-# 2) Algoritmo greedy de inserción en extremos (front/back)
 def greedy_insert(strs):
     pool = eliminar_redundancias(strs)
     def overlap(a, b):
@@ -60,8 +55,6 @@ def greedy_insert(strs):
         pool.remove(best_t)
         pool = eliminar_redundancias(pool)
     return s
-
-# 3) Multi-start combinando ambos heurísticos
 def shortest_superstring(strs, trials=20):
     best = None
     for _ in range(trials):
