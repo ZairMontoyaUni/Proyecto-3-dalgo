@@ -1,20 +1,25 @@
 import sys
 import time
 import random
+from functools import lru_cache
+
 def eliminar_redundancias(strs):
     unique = []
     for s in sorted(strs, key=len, reverse=True):
         if not any(s in t for t in unique):
             unique.append(s)
     return unique
+
+@lru_cache(maxsize=None)
+def overlap(a, b):
+    m = min(len(a), len(b))
+    for k in range(m, 0, -1):
+        if a.endswith(b[:k]):
+            return k
+    return 0
+
 def greedy_merge(strs):
     strs = eliminar_redundancias(strs)
-    def overlap(a, b):
-        m = min(len(a), len(b))
-        for k in range(m, 0, -1):
-            if a.endswith(b[:k]):
-                return k
-        return 0
     while len(strs) > 1:
         best_i = best_j = -1
         best_ov = -1
@@ -25,17 +30,13 @@ def greedy_merge(strs):
                     if ov > best_ov:
                         best_ov, best_i, best_j = ov, i, j
         merged = strs[best_i] + strs[best_j][best_ov:]
-        new_list = [s for idx, s in enumerate(strs) if idx not in (best_i, best_j)]
-        new_list.append(merged)
-        strs = eliminar_redundancias(new_list)
+        # Solo eliminar los dos usados y añadir el nuevo sin llamar a eliminar_redundancias
+        strs = [s for idx, s in enumerate(strs) if idx not in (best_i, best_j)]
+        strs.append(merged)
     return strs[0]
+
 def greedy_insert(strs):
     pool = eliminar_redundancias(strs)
-    def overlap(a, b):
-        m = min(len(a), len(b))
-        for k in range(m, 0, -1):
-            if a.endswith(b[:k]): return k
-        return 0
     s = pool.pop(random.randrange(len(pool)))
     while pool:
         best_t = None
@@ -47,14 +48,14 @@ def greedy_insert(strs):
             ov2 = overlap(t, s)
             cand2 = t + s[ov2:]
             for cand in (cand1, cand2):
-                cand_pool = [c for c in pool if c != t] + [cand]
-                cand_pool = eliminar_redundancias(cand_pool)
                 if len(cand) < best_len:
-                    best_len, best_s_new, best_t = len(cand), cand, t
+                    best_len = len(cand)
+                    best_s_new = cand
+                    best_t = t
         s = best_s_new
         pool.remove(best_t)
-        pool = eliminar_redundancias(pool)
     return s
+
 def shortest_superstring(strs, trials=20):
     best = None
     for _ in range(trials):
@@ -74,7 +75,7 @@ def main():
     T = int(first.strip())
     results = []
     for _ in range(T):
-        # leer línea no vacía con n y k
+        # leer línea no vacía
         while True:
             line = data.readline()
             if not line:
@@ -84,13 +85,8 @@ def main():
                 break
         if not line:
             break
-        parts = line.split()
-        n = int(parts[0])
-        strs = []
-        for _ in range(n):
-            s = data.readline().strip()
-            strs.append(s)
-        # calcular supercadena
+        n = int(line.split()[0])
+        strs = [data.readline().strip() for _ in range(n)]
         res = shortest_superstring(strs, trials=30)
         results.append(res)
     sys.stdout.write("\n".join(results))
