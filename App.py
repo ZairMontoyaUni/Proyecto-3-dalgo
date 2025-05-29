@@ -93,8 +93,9 @@ def main():
     output_file = sys.argv[2] if len(sys.argv) > 2 else None
     
     if input_file:
-        f = open(input_file, 'r')            
-        n_cases = int(f.readline())
+        f = open(input_file, 'r', encoding='utf-16')
+        n_cases = int(f.readline().strip())
+
     else:
         n_cases = int(sys.stdin.readline())
     
